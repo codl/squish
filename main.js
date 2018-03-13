@@ -3,17 +3,22 @@
     const MAX_WIDTH = 1280;
     const MAX_HEIGHT = 1280;
 
-    let input = document.querySelector('input[type=file]');
     function load_image(url){
-        let p = new Promise(resolve => {
+        // takes an image url and returns an HTMLImageElement when it is
+        // successfully loaded
+        // or rejects if it fails
+        let p = new Promise((resolve, reject) => {
             let image = new Image();
             image.src = url;
             image.crossOrigin = 'anonymous';
             image.onload = () => resolve(image);
+            image.onerror = reject;
         })
         return p;
     }
     async function compress_optimally(canvas){
+        // takes a canvas and returns a JPEG version of this image as a Blob,
+        // compressed to fit within MAX_BYTES
         let found = false;
         let quality = 1;
         while(!found){
@@ -27,9 +32,12 @@
         }
     }
     function compress(canvas, quality){
+        // takes a canvas and a quality within [0, 1] and returns a JPEG within a Blob
         return new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', quality));
     }
     function fit_to_bounds(image){
+        // takes an HTMLImageElement and returns a canvas with the image resized to fit
+        // within MAX_HEIGHT and MAX_WIDTH
         let width = image.naturalWidth;
         let height = image.naturalHeight;
         const x_ratio = width / MAX_WIDTH;
@@ -39,10 +47,16 @@
             return scale_down(image, Math.max(x_ratio, y_ratio));
         }
         else {
-            document.createElement('canvas');
+            const canvas = document.createElement('canvas');
+            canvas.height = height;
+            canvas.width = width;
+            canvas.getContext('2d').drawImage(image, 0, 0);
+            return canvas;
         }
     }
     function scale_down(source, target_ratio){
+        // takes an HTMLImageElement and a ratio to scale it down by and returns a canvas with the resized image
+        // (eg target_ratio = 2 means output will be 1/2 as wide and tall)
         target_ratio = 1/target_ratio;
         let current_ratio = 1;
 
@@ -77,35 +91,30 @@
         result.height = target_height;
         result.getContext('2d').drawImage(canvas, 0, 0, width, height, 0, 0, target_width, target_height);
 
-        document.body.appendChild(canvas);
-        document.body.appendChild(result);
-
-        {
-            let url = canvas.toDataURL('image/png');
-            console.log(url);
-            let img = document.createElement('img');
-            img.src = url;
-            document.body.appendChild(img);
-        }
-        {
-            let url = result.toDataURL('image/png');
-            console.log(url);
-            let img = document.createElement('img');
-            img.src = url;
-            document.body.appendChild(img);
-
-        }
-
         return result
     }
-    async function acceptFile(){
-        let file = input.files[0];
-        let url = URL.createObjectURL(file);
+    async function to_url(file){
+        // takes a Blob (or File) and returns a blob: url for it
+        return URL.createObjectURL(file);
+    }
+    async function acceptFile(file){
+        let url = await to_url(file);
         let image = await load_image(url);
         let buffer = fit_to_bounds(image);
         let blob = await compress_optimally(buffer);
-        document.querySelector('img').src = URL.createObjectURL(blob);
+        let a = document.createElement('a');
+        a.download = 'resized.jpg';
+        a.href = await to_url(blob);
+        let click_event = new MouseEvent('click');
+        a.dispatchEvent(click_event);
+
+        //document.querySelector('img').src = URL.createObjectURL(blob);
     }
-    input.addEventListener('change', acceptFile);
+    let input = document.querySelector('input[type=file]');
+    // TODO handle case where zero files were selected
+    input.addEventListener('change', () =>
+        acceptFile(input.files[0])
+            .then(() => input.value = null)
+    );
 
 })();
