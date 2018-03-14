@@ -20,12 +20,10 @@
         // takes a canvas and returns a JPEG version of this image as a Blob,
         // compressed to fit within MAX_BYTES
         let found = false;
-        let quality = 1;
+        let quality = .95;
         while(!found){
-            console.log(quality);
             let blob = await compress(canvas, quality);
             if(blob.size <= MAX_BYTES){
-                console.log(quality);
                 return blob;
             }
             quality -= 0.01;
@@ -110,11 +108,52 @@
 
         //document.querySelector('img').src = URL.createObjectURL(blob);
     }
-    let input = document.querySelector('input[type=file]');
+
+    async function acceptFiles(files){
+        return await Promise.all(files.map(acceptFile));
+    }
+
+    let input = document.createElement('input');
+    input.type = 'file';
+    input.multiple = true;
+    input.accept = 'image/*';
     // TODO handle case where zero files were selected
-    input.addEventListener('change', () =>
-        acceptFile(input.files[0])
-            .then(() => input.value = null)
+    input.addEventListener('change', () => {
+        acceptFiles(Array.from(input.files));
+        input.value = null;
+    });
+
+    let button = document.querySelector('#browse-button');
+    button.addEventListener('click', () => {
+        let click_event = new MouseEvent('click');
+        input.dispatchEvent(click_event);
+    });
+
+    function dropToFiles(event){
+        return Array.from(event.dataTransfer.items)
+            .filter(item => item.kind == 'file')
+            .map(item => item.getAsFile())
+    }
+
+    button.addEventListener('drop', event => {
+        event.preventDefault();
+
+        let files = dropToFiles(event);
+        acceptFiles(files);
+        button.classList.remove('dragover');
+    });
+
+    button.addEventListener('dragover', event =>
+        event.preventDefault()
+    );
+
+    button.addEventListener('dragenter', () =>
+        button.classList.add('dragover')
+    );
+
+
+    button.addEventListener('dragleave', () =>
+        button.classList.remove('dragover')
     );
 
 
