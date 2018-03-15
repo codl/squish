@@ -3,6 +3,8 @@
     const MAX_WIDTH = 1280;
     const MAX_HEIGHT = 1280;
 
+    let pristine = true;
+
     function load_image(url){
         // takes an image url and returns an HTMLImageElement when it is
         // successfully loaded
@@ -125,6 +127,7 @@
 
     let button = document.querySelector('#browse-button');
     button.addEventListener('click', () => {
+        pristine = false;
         let click_event = new MouseEvent('click');
         input.dispatchEvent(click_event);
     });
@@ -137,6 +140,7 @@
 
     button.addEventListener('drop', event => {
         event.preventDefault();
+        pristine = false;
 
         let files = dataTransferToFiles(event.dataTransfer);
         acceptFiles(files);
@@ -158,6 +162,7 @@
 
     document.body.addEventListener('paste', event => {
         event.preventDefault();
+        pristine = false;
         let files = dataTransferToFiles(event.clipboardData);
         acceptFiles(files);
     });
@@ -167,6 +172,14 @@
     // serviceworker registration
     if('serviceWorker' in navigator){
         navigator.serviceWorker.register('./serviceworker.js');
+        navigator.serviceWorker.addEventListener('message', event => {
+            if(event.data == 'update'){
+                if(pristine){
+                    window.location = window.location;
+                }
+            }
+        });
     }
+
 
 })();
