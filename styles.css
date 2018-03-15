@@ -19,3 +19,7 @@ button#browse-button.dragover {
     background-color: #e8bad0;
 }
 
+footer {
+    margin: 2em;
+    font-size: .9em;
+}
