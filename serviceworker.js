@@ -1,9 +1,9 @@
 const CACHE_VERSION = 'dev5';
-const CACHE_PREFIX = `fr.codl.squish-${registration.scope}`;
+const CACHE_PREFIX = `fr.codl.squish@${registration.scope}`;
 const CACHE_NAME = `${CACHE_PREFIX}-${CACHE_VERSION}`;
 
 const INDEX = 'index.html';
-const ASSETS = [ 'main.js' ];
+const ASSETS = [ 'main.js', 'styles.css' ];
 const CACHE_CONTENTS = [ INDEX ].concat(ASSETS);
 
 self.addEventListener('install', event => {
