@@ -129,8 +129,8 @@
         input.dispatchEvent(click_event);
     });
 
-    function dropToFiles(event){
-        return Array.from(event.dataTransfer.items)
+    function dataTransferToFiles(dt){
+        return Array.from(dt.items)
             .filter(item => item.kind == 'file')
             .map(item => item.getAsFile())
     }
@@ -138,7 +138,7 @@
     button.addEventListener('drop', event => {
         event.preventDefault();
 
-        let files = dropToFiles(event);
+        let files = dataTransferToFiles(event.dataTransfer);
         acceptFiles(files);
         button.classList.remove('dragover');
     });
@@ -156,6 +156,11 @@
         button.classList.remove('dragover')
     );
 
+    document.body.addEventListener('paste', event => {
+        event.preventDefault();
+        let files = dataTransferToFiles(event.clipboardData);
+        acceptFiles(files);
+    });
 
 
 

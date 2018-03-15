@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'dev4';
+const CACHE_VERSION = 'dev5';
 const CACHE_PREFIX = `fr.codl.squish-${registration.scope}`;
 const CACHE_NAME = `${CACHE_PREFIX}-${CACHE_VERSION}`;
 
