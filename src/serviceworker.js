@@ -1,5 +1,5 @@
 const CACHE_PREFIX = `fr.codl.squish@${registration.scope}`;
-const CACHE_EPOCH = '0';
+const CACHE_EPOCH = '1';
 
 function cache_for_hash(hash){
     return `${CACHE_PREFIX}@${CACHE_EPOCH}@${hash}`
@@ -11,7 +11,7 @@ const INDEX = 'index.html';
 
 function follow_redirects(resp){
     if(resp.redirected){
-        return fetch(resp.url, {cache: 'no-cache'}).then(follow_redirects);
+        return fetch(resp.url, {cache: 'no-cache', redirect: 'follow'}).then(follow_redirects);
     }
     return resp;
 }
@@ -25,7 +25,7 @@ self.addEventListener('install', event => {
             caches.has(cache_name).then(has_cache => {
                 if(!has_cache){
                     return Promise.all([
-                        fetch(file, {cache: 'no-cache', redirect: 'manual'})
+                        fetch(file, {cache: 'no-cache', redirect: 'follow'})
                         .then(follow_redirects),
                         caches.open(cache_name)
                     ]).then((i) => {
